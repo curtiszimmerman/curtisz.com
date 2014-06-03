@@ -130,6 +130,8 @@ var boot = (function() {
 		_log.error('uncaught exception: '+err.stack);
 		process.exit(1);
 	});
+	_pubsub.sub('/client/send/file', _sendFile);
+	_pubsub.sub('/client/send/status', _sendStatus);
 })();
 
 /*\
@@ -140,30 +142,30 @@ var server = (function() {
 		var pathname = url.parse(req.url).pathname;
 		if (req.method == 'GET') {
 			if (pathname == '/favicon.ico') {
-
+				_pubsub.pub('/client/send/status', [requestID, 410]);
 			} else if (pathname == '/' || pathname == '/index.html') {
-
+				_pubsub.pub('/client/send/file', [requestID, 'index.html']);
 			} else if (pathname == '/curtisz.css') {
-
+				_pubsub.pub('/client/send/file', [requestID, 'curtisz.css']);
 			} else if (pathname == '/curtisz.js') {
-
+				_pubsub.pub('/client/send/file', [requestID, 'curtisz.js']);
 			} else if (pathname == '/test/index.html') {
-				_
+				_pubsub.pub('/client/send/file', [requestID, 'vendor/index.html']);
  			} else if (pathname == '/test/mocha.css') {
-				
+				_pubsub.pub('/client/send/file', [requestID, 'vendor/mocha.css']);
 			} else if (pathname == '/test/mocha.js') {
-				
+				_pubsub.pub('/client/send/file', [requestID, 'vendor/mocha.js']);
 			} else if (pathname == '/test/tests.js') {
-				
+				_pubsub.pub('/client/send/file', [requestID, 'vendor/tests.js']);
 			} else {
-
+				_pubsub.pub('/client/send/status', [requestID, 404]);
 			}
 		} else if (req.method == 'POST') {
 			if (pathname == '/') {
-
+				_pubsub.pub('/client/send/status', [requestID, 200]);
 			}
 		} else {
-
+			_pubsub.pub('/client/send/status', [requestID, 405]);
 		}
 	}).on('error', function(err) {
 		_log.error('createServer: '+err);
