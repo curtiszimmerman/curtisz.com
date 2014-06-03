@@ -17,5 +17,14 @@
   "license": "BSD-3-Clause",
   "bugs": {
     "url": "https://github.com/curtiszimmerman/curtisz.com/issues"
+  },
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "chai": "~1.9.1"
+  },
+  "devDependencies": {
+    "mocha": "~1.20.0"
   }
 }
