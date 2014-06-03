@@ -17,6 +17,7 @@ var url = require('url');
 |*|
 \*/
 var __appData = {
+	clients: {},
 	defaultIDLength: 15,
 	listenPort: 2345,
 	mime: {
@@ -132,11 +133,12 @@ var _sendFile = function( requestID, file, callback ) {
 			}
 			_log.error(err);
 		} else {
+			var client = __appData.clients[requestID];
+			var type = file.substr(file.lastIndexOf('.')+1);
+			client.res.writeHead(200, {'Content-Type': __appData.mime[type]});
+			client.res.write(data);
+			client.res.end();
 			if (callback && typeof(callback) == 'function') {
-				var type = file.substr(file.lastIndexOf('.')+1);
-				res.writeHead(200, {'Content-Type': __appData.mime[type]});
-				res.write(data);
-				res.end();
 				callback(null, data);
 			}
 		}
@@ -148,6 +150,41 @@ var _sendFile = function( requestID, file, callback ) {
 |*|
 \*/
 var _sendStatus = function( requestID, code ) {
+	var statusCode = (typeof(code) == 'number') ? code : 500;
+	var statusMessage = "Internal Server Error";
+	switch (code) {
+		case 200:
+			statusMessage = "Success";
+			break;
+		case 201:
+			statusMessage = "Created";
+			break;
+		case 202:
+			statusMessage = "Processed";
+			break;
+		case 401:
+			statusMessage = "Unauthorized";
+			break;
+		case 403:
+			statusMessage = "Forbidden";
+			break;
+		case 404:
+			statusMessage = "Resource Not Found";
+			break;
+		case 405:
+			statusMessage = "Method Not Supported";
+			break;
+		case 413:
+			statusMessage = "Request Entity Too Large";
+			break;
+		default:
+			// no need :)
+			break;
+	};
+	var client = __appData.clients[requestID];
+	client.res.writeHead(statusCode, statusMessage, {'Content-Type': 'text/html'});
+	client.res.write('<!doctype html><html><head><meta charset="utf-8"></head><body>'+statusCode+': '+statusMessage+'</body></html>');
+	client.res.end();
 	return false;
 };
 
@@ -181,15 +218,22 @@ var server = (function() {
 	http.createServer(function(req, res) {
 		var pathname = url.parse(req.url).pathname;
 		var requestID = _getID(__appData.requestIDLength);
+		var client = {
+			res: res,
+			timestamp: Math.round(new Date().getTime()/1000.0)
+		};
+		__appData.clients[requestID] = client;
 		if (req.method == 'GET') {
 			if (pathname == '/favicon.ico') {
 				_pubsub.pub('/client/send/status', [requestID, 410]);
 			} else if (pathname == '/' || pathname == '/index.html') {
-				_pubsub.pub('/client/send/file', [requestID, 'index.html']);
+				_pubsub.pub('/client/send/file', [requestID, 'lib/index.html']);
 			} else if (pathname == '/curtisz.css') {
-				_pubsub.pub('/client/send/file', [requestID, 'curtisz.css']);
+				_pubsub.pub('/client/send/file', [requestID, 'lib/curtisz.css']);
 			} else if (pathname == '/curtisz.js') {
-				_pubsub.pub('/client/send/file', [requestID, 'curtisz.js']);
+				_pubsub.pub('/client/send/file', [requestID, 'lib/curtisz.js']);
+			} else if (pathname == '/test/') {
+				_pubsub.pub('/client/send/file', [requestID, 'vendor/index.html']);
 			} else if (pathname == '/test/index.html') {
 				_pubsub.pub('/client/send/file', [requestID, 'vendor/index.html']);
  			} else if (pathname == '/test/mocha.css') {
