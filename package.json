@@ -4,7 +4,7 @@
   "description": "curtisz.com node.js web application",
   "main": "web.js",
   "scripts": {
-    "test": "mocha -u tdd"
+    "test": "make test"
   },
   "repository": {
     "type": "git",
