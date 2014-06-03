@@ -19,6 +19,15 @@ var url = require('url');
 var __appData = {
 	defaultIDLength: 15,
 	listenPort: 2345,
+	mime: {
+		'css': 'text/css',
+		'gif': 'image/gif',
+		'html': 'text/html',
+		'ico': 'image-x/icon',
+		'jpg': 'image/jpeg',
+		'js': 'text/javascript',
+		'png': 'image/png'
+	},
 	requestIDLength: 15
 };
 
@@ -111,8 +120,27 @@ var _pubsub = (function() {
 |*| @function _sendFile
 |*| Sends a file to the specified requestID
 \*/
-var _sendFile = function( requestID, file ) {
-
+var _sendFile = function( requestID, file, callback ) {
+	fs.readFile(file, function(err, data) {
+		if (err) {
+			if (callback && typeof(callback) == 'function') {
+				// ERROR
+				// res.writeHead()
+				// res.write()
+				// res.end()
+				callback(err);
+			}
+			_log.error(err);
+		} else {
+			if (callback && typeof(callback) == 'function') {
+				var type = file.substr(file.lastIndexOf('.')+1);
+				res.writeHead(200, {'Content-Type': __appData.mime[type]});
+				res.write(data);
+				res.end();
+				callback(null, data);
+			}
+		}
+	});
 	return false;
 };
 
