@@ -16,11 +16,20 @@ var url = require('url');
 /*\
 |*|
 \*/
+var __appData = {
+	defaultIDLength: 15,
+	listenPort: 2345,
+	requestIDLength: 15
+};
+
+/*\
+|*|
+\*/
 var _getID = function( IDLength ) {
-	var IDLength = (typeof(IDLength) == 'number') ? IDLength : serverData.defaultIDLength;
+	var IDLength = (typeof(IDLength) == 'number') ? IDLength : __appData.defaultIDLength;
 	var charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 	var id = '';
-	for (int i=0; i<IDLength; i++) {
+	for (var i=0; i<IDLength; i++) {
 		id += charset.substr(Math.floor(Math.random*charset.length), 1);
 	}
 	return id;
@@ -99,27 +108,20 @@ var _pubsub = (function() {
 })();
 
 /*\
-|*|
+|*| @function _sendFile
+|*| Sends a file to the specified requestID
 \*/
-var _sendFile = function( clientID, file ) {
+var _sendFile = function( requestID, file ) {
+
 	return false;
 };
 
 /*\
 |*|
 \*/
-var _sendStatus = function( clientID, code ) {
+var _sendStatus = function( requestID, code ) {
 	return false;
 };
-
-/*\
-|*|
-\*/
-var _serverData = {
-	defaultIDLength: 15,
-	listenPort: 2345
-};
-
 
 /*\
 |*| @function boot
@@ -134,12 +136,23 @@ var boot = (function() {
 	_pubsub.sub('/client/send/status', _sendStatus);
 })();
 
+var test = (function() {
+	module.exports.getID = _getID;
+	module.exports.sendFile = _sendFile;
+	module.exports.sendStatus = _sendStatus;
+	// for now, if called with require() (as in during a Mocha test), do not run the server
+	if (require.main !== module) {
+		__appData.kill = true;
+	}
+})();
+
 /*\
 |*|
 \*/
 var server = (function() {
 	http.createServer(function(req, res) {
 		var pathname = url.parse(req.url).pathname;
+		var requestID = _getID(__appData.requestIDLength);
 		if (req.method == 'GET') {
 			if (pathname == '/favicon.ico') {
 				_pubsub.pub('/client/send/status', [requestID, 410]);
@@ -169,5 +182,5 @@ var server = (function() {
 		}
 	}).on('error', function(err) {
 		_log.error('createServer: '+err);
-	}).listen(serverData.listenPort);
+	}).listen(__appData.listenPort);
 })();
