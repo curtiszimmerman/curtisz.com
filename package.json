@@ -1,0 +1,21 @@
+{
+  "name": "curtisz.com",
+  "version": "0.0.1",
+  "description": "curtisz.com node.js web application",
+  "main": "web.js",
+  "scripts": {
+    "test": "mocha -u tdd"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:curtiszimmerman/curtisz.com.git"
+  },
+  "keywords": [
+    "curtisz.com"
+  ],
+  "author": "curtis zimmerman",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/curtiszimmerman/curtisz.com/issues"
+  }
+}
