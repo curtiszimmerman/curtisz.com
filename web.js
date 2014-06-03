@@ -36,7 +36,60 @@ var _log = (function() {
 	};
 })();
 
-var serverData = {
+/*\
+|*| pub/sub/unsub pattern utility closure
+\*/
+var _pubsub = (function() {
+	var cache = {};
+	function _flush() {
+		cache = {};
+	};
+	function _pub( topic, args, scope ) {
+		if (cache[topic]) {
+			var currentTopic = cache[topic],
+				topicLength = currentTopic.length;
+			for (var i=0; i<topicLength; i++) {
+				currentTopic[i].apply(scope || this, args || []);
+			}
+		}
+	};
+	function _sub( topic, callback ) {
+		if (!cache[topic]) {
+			cache[topic] = [];
+		}
+		cache[topic].push(callback);
+		return [topic, callback];
+	};
+	function _unsub( handle, total ) {
+		var topic = handle[0],
+			cacheLength = cache[topic].length;
+		if (cache[topic]) {
+			for (var i=0; i<cacheLength; i++) {
+				if (cache[topic][i] === handle) {
+					cache[topic].splice(cache[topic][i], 1);
+					if (total) {
+						delete cache[topic];
+					}
+				}
+			}
+		}
+	};
+	return {
+		flush: _flush,
+		pub: _pub,
+		sub: _sub,
+		unsub: _unsub
+	};
+})();
+
+var _init = (function() {
+	process.on('uncaughtException', function(err) {
+		_log.error('uncaught exception: '+err.stack);
+		process.exit(1);
+	});
+})();
+
+var _serverData = {
 	listenPort: 2345
 };
 
@@ -47,9 +100,9 @@ var server = http.createServer(function(req, res) {
 
 		} else if (pathname == '/' || pathname == '/index.html') {
 
-		} else if (pathname == '/default.css') {
+		} else if (pathname == '/curtisz.css') {
 
-		} else if (pathname == '/site.js') {
+		} else if (pathname == '/curtisz.js') {
 
 		} else if (pathname == '/') {
 
@@ -58,11 +111,11 @@ var server = http.createServer(function(req, res) {
 		}
 	} else if (req.method == 'POST') {
 		if (pathname == '/') {
-			
+
 		}
 	} else {
 
 	}
-})on('error', function(err) {
+}).on('error', function(err) {
 	_log.error('createServer: '+err);
 }).listen(serverData.listenPort);
