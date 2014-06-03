@@ -13,6 +13,22 @@ var fs = require('fs');
 var http = require('http');
 var url = require('url');
 
+/*\
+|*|
+\*/
+var _getID = function( IDLength ) {
+	var IDLength = (typeof(IDLength) == 'number') ? IDLength : serverData.defaultIDLength;
+	var charset = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+	var id = '';
+	for (int i=0; i<IDLength; i++) {
+		id += charset.substr(Math.floor(Math.random*charset.length), 1);
+	}
+	return id;
+};
+
+/*\
+|*|
+\*/
 var _log = (function() {
 	function _console( data, type ) {
 		var pre = ['[i] DEBUG: ', '[!] ERROR: ', '[+] '];
@@ -82,40 +98,74 @@ var _pubsub = (function() {
 	};
 })();
 
-var _init = (function() {
+/*\
+|*|
+\*/
+var _sendFile = function( clientID, file ) {
+	return false;
+};
+
+/*\
+|*|
+\*/
+var _sendStatus = function( clientID, code ) {
+	return false;
+};
+
+/*\
+|*|
+\*/
+var _serverData = {
+	defaultIDLength: 15,
+	listenPort: 2345
+};
+
+
+/*\
+|*| @function boot
+|*| Bootstraps the environment for the application.
+\*/
+var boot = (function() {
 	process.on('uncaughtException', function(err) {
 		_log.error('uncaught exception: '+err.stack);
 		process.exit(1);
 	});
 })();
 
-var _serverData = {
-	listenPort: 2345
-};
+/*\
+|*|
+\*/
+var server = (function() {
+	http.createServer(function(req, res) {
+		var pathname = url.parse(req.url).pathname;
+		if (req.method == 'GET') {
+			if (pathname == '/favicon.ico') {
 
-var server = http.createServer(function(req, res) {
-	var pathname = url.parse(req.url).pathname;
-	if (req.method == 'GET') {
-		if (pathname == '/favicon.ico') {
+			} else if (pathname == '/' || pathname == '/index.html') {
 
-		} else if (pathname == '/' || pathname == '/index.html') {
+			} else if (pathname == '/curtisz.css') {
 
-		} else if (pathname == '/curtisz.css') {
+			} else if (pathname == '/curtisz.js') {
 
-		} else if (pathname == '/curtisz.js') {
+			} else if (pathname == '/test/index.html') {
+				_
+ 			} else if (pathname == '/test/mocha.css') {
+				
+			} else if (pathname == '/test/mocha.js') {
+				
+			} else if (pathname == '/test/tests.js') {
+				
+			} else {
 
-		} else if (pathname == '/') {
+			}
+		} else if (req.method == 'POST') {
+			if (pathname == '/') {
 
+			}
 		} else {
 
 		}
-	} else if (req.method == 'POST') {
-		if (pathname == '/') {
-
-		}
-	} else {
-
-	}
-}).on('error', function(err) {
-	_log.error('createServer: '+err);
-}).listen(serverData.listenPort);
+	}).on('error', function(err) {
+		_log.error('createServer: '+err);
+	}).listen(serverData.listenPort);
+})();
